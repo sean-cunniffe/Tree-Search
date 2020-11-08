@@ -1,0 +1,28 @@
+*{
+  --node-diameter: 6vh;
+}
+
+.parent{
+  position: fixed;
+  width: 100vh;
+  height: 100vh;
+  background: darkgray;
+  left:50%;
+  transform: translateX(-50%);
+}
+
+.node{
+  position: absolute;
+  width: var(--node-diameter);
+  height: var(--node-diameter);
+  border: 1px solid black;
+  border-radius: var(--node-diameter);
+  transform: translate(-50%,50%);
+  background: white;
+}
+
+.node-line{
+  position: absolute;
+  height: 3px;
+  background: white;
+}

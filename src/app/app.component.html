@@ -1,0 +1,21 @@
+<div class="parent">
+
+  <ng-container *ngFor="let node of getNodes();index as index">
+    <div id="{{index}}A" *ngIf="!node.isLeaf" class="node-line"
+         [style.width.%]="node.lcLineLength" [style.transform]="'translate(-50%,50%) rotate('+node.lcLineAngle+'deg)'"
+         [style.bottom.%]="node.lcLinePosition[1]" [style.left.%]="node.lcLinePosition[0]">
+    </div>
+    <div id="{{index}}B" *ngIf="!node.isLeaf" class="node-line"
+         [style.width.%]="node.rcLineLength" [style.transform]="'translate(-50%,50%) rotate('+node.rcLineAngle+'deg)'"
+         [style.bottom.%]="node.rcLinePosition[1]" [style.left.%]="node.rcLinePosition[0]">
+    </div>
+
+    <div *ngIf="!node.isLeaf" class="node" [style.bottom.%]="node.yPos" [style.left.%]="node.xPos"
+         (mouseenter)="highlightNode($event.target,index)" (mouseleave)="lowLightNode($event.target,index)">
+      {{index}}
+    </div>
+    <div *ngIf="node.isLeaf" class="node" [style.bottom.%]="node.yPos" [style.left.%]="node.xPos" [style.background]="'green'">
+      {{index}}
+    </div>
+  </ng-container>
+</div>
