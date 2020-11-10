@@ -1,24 +1,41 @@
 *{
-  --node-diameter: 6vh;
+  --node-diameter: 3.7vh;
+  --node-radius:100%;
 }
 
-.parent{
-  position: fixed;
-  width: 100vh;
+.wrapper{
+  bottom: 0;
+  width:100%;
   height: 100vh;
+}
+.node-container{
+  width: 100%;
+  height:90%;
+  position: relative;
   background: darkgray;
-  left:50%;
-  transform: translateX(-50%);
+  border:1px solid black;
+}
+.controller-container{
+  width:100%;
 }
 
 .node{
+  z-index: 2;
   position: absolute;
   width: var(--node-diameter);
   height: var(--node-diameter);
   border: 1px solid black;
-  border-radius: var(--node-diameter);
+  border-radius: var(--node-radius);
   transform: translate(-50%,50%);
   background: white;
+}
+
+.d-node{
+  width: 20px;
+  height:20px;
+  border: 1px solid black;
+  border-radius: var(--node-radius);
+
 }
 
 .node-line{
@@ -26,3 +43,4 @@
   height: 3px;
   background: white;
 }
+

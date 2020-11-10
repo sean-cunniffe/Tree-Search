@@ -1,21 +1,69 @@
-<div class="parent">
+<div class="wrapper d-flex flex-column">
+  <div class="controller-container d-flex flex-row">
+    <div class="d-flex flex-column mr-2">
+      <div class="d-flex flex-row">
+        <div class="d-node"
+             [style.background]="'green'" [style.transform]="''">
+          <!--        {{node.treeDepth}}-->
+        </div>
+        <h4>Leaf</h4>
+      </div>
+      <div class="d-flex flex-row">
+        <div class="d-node"
+             [style.background]="'blue'">
+        </div>
+        <h4>Root</h4>
+      </div>
+      <div class="d-flex flex-row">
+        <div class="d-node"
+             [style.background]="'White'">
+        </div>
+        <h4>Branch</h4>
+      </div>
+    </div>
+    <div class="d-flex flex-column">
+      <h4 class="header font-weight-bold">Tree Depth</h4>
+      <div class="d-flex flex-row">
+        <label class="w-100">
+          <input type="number" value="{{treeNodeService.treeDepth}}" (input)="updateTreeDepth($event.target.value)">
+        </label>
+      </div>
+    </div>
+    <div class="d-flex flex-column">
+      <h4 class="header font-weight-bold">Max Children per node</h4>
+      <div class="d-flex flex-row">
+        <label class="w-100">
+          <input type="number" value="{{treeNodeService.maxChildren}}" (input)="updateMaxChildren($event.target.value)">
+        </label>
+      </div>
+    </div>
+    <button class="h-fit mt-auto mb-auto" (click)="generateTree()">Generate Tree</button>
+  </div>
 
-  <ng-container *ngFor="let node of getNodes();index as index">
-    <div id="{{index}}A" *ngIf="!node.isLeaf" class="node-line"
-         [style.width.%]="node.lcLineLength" [style.transform]="'translate(-50%,50%) rotate('+node.lcLineAngle+'deg)'"
-         [style.bottom.%]="node.lcLinePosition[1]" [style.left.%]="node.lcLinePosition[0]">
-    </div>
-    <div id="{{index}}B" *ngIf="!node.isLeaf" class="node-line"
-         [style.width.%]="node.rcLineLength" [style.transform]="'translate(-50%,50%) rotate('+node.rcLineAngle+'deg)'"
-         [style.bottom.%]="node.rcLinePosition[1]" [style.left.%]="node.rcLinePosition[0]">
-    </div>
+  <div id="parentContainer" class="node-container flex-grow-1">
+    <ng-container *ngFor="let node of getNodes();index as index">
+      <div id="{{node.generateLineId()}}" *ngIf="node.parentNode!=undefined" class="node-line"
+           [style.width.%]="node.lineLength" [style.transform]="'translate(-50%,50%) rotate('+node.lineAngle+'deg)'"
+           [style.bottom.%]="node.linePosition[1]" [style.left.%]="node.linePosition[0]">
+      </div>
 
-    <div *ngIf="!node.isLeaf" class="node" [style.bottom.%]="node.yPos" [style.left.%]="node.xPos"
-         (mouseenter)="highlightNode($event.target,index)" (mouseleave)="lowLightNode($event.target,index)">
-      {{index}}
-    </div>
-    <div *ngIf="node.isLeaf" class="node" [style.bottom.%]="node.yPos" [style.left.%]="node.xPos" [style.background]="'green'">
-      {{index}}
-    </div>
-  </ng-container>
+      <div id="root" *ngIf="node.id == 'root'" class="node" [style.bottom.%]="node.yPos" [style.left.%]="node.xPos"
+           [style.background]="'blue'">
+        <!--        {{node.treeDepth}}-->
+      </div>
+
+      <div id="{{node.setId(15)}}" *ngIf="!node.isLeaf && node != rootNode" class="node" [style.bottom.%]="node.yPos"
+           [style.left.%]="node.xPos"
+           (mouseenter)="highlightNode($event.target,node)" (mouseleave)="lowLightNode($event.target,node)">
+        <!--        {{node.treeDepth}}-->
+      </div>
+      <div id="{{node.setId(15)}}" *ngIf="node.isLeaf && node != rootNode" class="node" [style.bottom.%]="node.yPos"
+           [style.left.%]="node.xPos"
+           [style.background]="'green'" (mouseenter)="highlightNode($event.target,node)"
+           (mouseleave)="lowLightNode($event.target,node)">
+        <!--        {{node.treeDepth}}-->
+      </div>
+
+    </ng-container>
+  </div>
 </div>

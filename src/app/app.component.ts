@@ -7,37 +7,112 @@ import {TreeNodeService} from './services/tree-node.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
+
+export class AppComponent implements OnInit {
   title = 'Tree-Search';
 
   rootNode: TreeNode;
-  treeLevel: number = 4;
 
   constructor(public treeNodeService: TreeNodeService) {
   }
 
   ngOnInit(): void {
-    this.rootNode = new TreeNode(undefined,this.treeLevel,this.treeNodeService);
+    this.rootNode = new TreeNode(undefined, this.treeNodeService);
+    this.rootNode.generateChildren(false);
   }
 
 
-  getNodes():TreeNode[]{
+  getNodes(): TreeNode[] {
     return this.treeNodeService.nodes;
   }
 
-  highlightNode(target: HTMLDivElement, index: number) {
-    let line1: HTMLDivElement = <HTMLDivElement>document.getElementById(index+"A");
-    let line2: HTMLDivElement = <HTMLDivElement>document.getElementById(index+"B");
-    line1.style.background = 'red';
-    line2.style.background = 'red';
+  highlightNode(target: HTMLDivElement, node: TreeNode) {
     target.style.background = 'orange';
+    let tempNode: TreeNode = node;
+    while(!tempNode.root){
+      let parent: HTMLDivElement = <HTMLDivElement> document.getElementById(tempNode.parentNode.id);
+      parent.style.background = 'orange';
+        let line: HTMLDivElement = <HTMLDivElement> document.getElementById(tempNode.lineId);
+        line.style.background = 'red';
+        tempNode = tempNode.parentNode;
+    }
+    let line: HTMLDivElement = <HTMLDivElement> document.getElementById(tempNode.lineId);
+    line.style.background = 'red';
   }
 
-  lowLightNode(target: HTMLDivElement, index: number) {
-    let line1: HTMLDivElement = <HTMLDivElement>document.getElementById(index+"A");
-    let line2: HTMLDivElement = <HTMLDivElement>document.getElementById(index+"B");
-    line1.style.background = 'white';
-    line2.style.background = 'white';
-    target.style.background = 'white';
+  lowLightNode(target: HTMLDivElement, node: TreeNode) {
+    if(node.isLeaf){
+      target.style.background = 'green';
+    }else{
+      target.style.background = 'white';
+    }
+    if(node.root){
+      target.style.background = 'blue';
+    }
+
+    let tempNode: TreeNode = node;
+    while(!tempNode.root){
+      let parent: HTMLDivElement = <HTMLDivElement> document.getElementById(tempNode.parentNode.id);
+      parent.style.background = 'white';
+      let line: HTMLDivElement = <HTMLDivElement> document.getElementById(tempNode.lineId);
+      line.style.background = 'white';
+      tempNode = tempNode.parentNode;
+    }
+    let parent: HTMLDivElement = <HTMLDivElement> document.getElementById('root');
+    parent.style.background = 'blue';
+  }
+
+  updateMaxChildren(value: number) {
+      this.treeNodeService.maxChildren = value;
+    //go through nodes and generate children
+  }
+
+
+  updateTreeDepth(value: number) {
+    let i = 0;
+    while (i < this.treeNodeService.nodes.length && value < this.treeNodeService.treeDepth) {
+      let node: TreeNode = this.treeNodeService.nodes[i];
+      if (node.treeDepth > value) {
+        this.treeNodeService.nodes.splice(this.treeNodeService.nodes.indexOf(node), 1);
+        node.parentNode.childrenNodes.splice(node.parentNode.childrenNodes.indexOf(node), 1);
+        this.treeNodeService.unclaimArea(node);
+        if (node.parentNode.childrenNodes.length <= 0) {
+          node.parentNode.isLeaf = true;
+        }
+      } else {
+        i++;
+      }
+    }
+    if (value > this.treeNodeService.treeDepth) {
+      this.treeNodeService.treeDepth = +value;
+      for (let node of this.treeNodeService.nodes) {
+        if (node.treeDepth + 1 == value) {
+          node.generateChildren(false);
+        }
+      }
+    } else {
+      this.treeNodeService.treeDepth = value;
+    }
+  }
+
+  generateTree() {
+    let currentTreeDepth:number=0;
+    //clear mapping and node list
+    this.treeNodeService.createMapping();
+    this.treeNodeService.nodes = [];
+    this.rootNode = new TreeNode(undefined, this.treeNodeService);
+    const id = setInterval(()=>{
+      for(let node of this.treeNodeService.nodes){
+        if(node.treeDepth === currentTreeDepth){
+          node.generateChildren(true);
+        }
+      }
+        currentTreeDepth++;
+        if(currentTreeDepth>this.treeNodeService.treeDepth){
+          this.treeNodeService.treeDepth = this.treeNodeService.nodes[this.treeNodeService.nodes.length-1].treeDepth;
+          clearInterval(id);
+        }
+
+    },200);
   }
 }
