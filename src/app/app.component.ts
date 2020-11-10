@@ -70,6 +70,7 @@ export class AppComponent implements OnInit {
 
   updateTreeDepth(value: number) {
     let i = 0;
+    //delete nodes with tree depth value less than new value
     while (i < this.treeNodeService.nodes.length && value < this.treeNodeService.treeDepth) {
       let node: TreeNode = this.treeNodeService.nodes[i];
       if (node.treeDepth > value) {
@@ -83,10 +84,11 @@ export class AppComponent implements OnInit {
         i++;
       }
     }
+    //add nodes if new value is greater than tree depth
     if (value > this.treeNodeService.treeDepth) {
       this.treeNodeService.treeDepth = +value;
       for (let node of this.treeNodeService.nodes) {
-        if (node.treeDepth + 1 == value) {
+        if (node.treeDepth <= value && node.childrenNodes.length<=0) {
           node.generateChildren(false);
         }
       }
