@@ -54,13 +54,14 @@
 
       <div id="{{node.setId(15)}}" *ngIf="!node.isLeaf && node != rootNode" class="node" [style.bottom.%]="node.yPos"
            [style.left.%]="node.xPos"
-           (mouseenter)="highlightNode($event.target,node)" (mouseleave)="lowLightNode($event.target,node)">
+           (mouseenter)="highlightNode($event.target,node)" (mouseleave)="lowLightNode($event.target,node)"
+           (focusin)="highlightNode($event.target,node)" (focusout)="lowLightNode($event.target,node)">
         <!--        {{node.treeDepth}}-->
       </div>
       <div id="{{node.setId(15)}}" *ngIf="node.isLeaf && node != rootNode" class="node" [style.bottom.%]="node.yPos"
            [style.left.%]="node.xPos"
-           [style.background]="'green'" (mouseenter)="highlightNode($event.target,node)"
-           (mouseleave)="lowLightNode($event.target,node)">
+           [style.background]="'green'" (mouseenter)="highlightNode($event.target,node)" (mouseleave)="lowLightNode($event.target,node)"
+           (focusin)="highlightNode($event.target,node)" (focusout)="lowLightNode($event.target,node)">
         <!--        {{node.treeDepth}}-->
       </div>
 
