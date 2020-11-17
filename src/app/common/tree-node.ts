@@ -1,14 +1,15 @@
 import {TreeNodeService} from '../services/tree-node.service';
+import {NodeLine} from './node-line';
 
 
 export class TreeNode {
 
+  explored: boolean = false;
   id: string;
   root: boolean;
 
-  lineAngle: number;
-  lineLength: number;
-  linePosition: number[];
+  relationsLines: Map<string,NodeLine> = new Map();
+
   lineId: string; //HTML id of line for highlighting
 
   static nodeDiameter: number = 2; // as percent
@@ -18,10 +19,12 @@ export class TreeNode {
   isLeaf: boolean = false;
   exist: boolean = true;
   treeDepth: number;
+  lineMaxLength:number=5; // as percent
   public childrenNodes: TreeNode[] = [];
-
+  public parents: TreeNode[] = [];
   constructor(public parentNode, public treeNodeService: TreeNodeService) {
 
+    this.setId(15);
 
     if (this.setPosition(parentNode)) {
       treeNodeService.nodes.push(this);
@@ -29,10 +32,9 @@ export class TreeNode {
       if (parentNode !== undefined) {
         this.treeDepth = this.parentNode.treeDepth + 1;
         parentNode.incrementTreeDepth();
-        this.lineLength = this.getLineLength(this.xPos, this.yPos, this.parentNode.xPos, this.parentNode.yPos);
-        this.lineAngle = this.getLineAngle(this.xPos, this.yPos, this.parentNode.xPos, this.parentNode.yPos);
-        this.linePosition = TreeNode.getLinePosition(this.xPos, this.yPos, this.parentNode.xPos, this.parentNode.yPos);
-        parentNode.isLeaf = false;
+        // this.lineLength = this.getLineLength(this.xPos, this.yPos, this.parentNode.xPos, this.parentNode.yPos);
+        // this.lineAngle = this.getLineAngle(this.xPos, this.yPos, this.parentNode.xPos, this.parentNode.yPos);
+        // this.linePosition = TreeNode.getLinePosition(this.xPos, this.yPos, this.parentNode.xPos, this.parentNode.yPos);
       } else {
         this.treeDepth = 0;
         this.root = true;
@@ -42,9 +44,6 @@ export class TreeNode {
     } else {
       //if couldnt find a position for node, remove from childrenNode in parent
       this.exist = false;
-    }
-    if (this.childrenNodes.length <= 0) {
-      this.isLeaf = true;
     }
   }
 
@@ -63,7 +62,6 @@ export class TreeNode {
     if (parentNode === undefined) {
       tempXPos = TreeNode.getRandomNumber([[TreeNode.nodeDiameter / 2, 100 - (TreeNode.nodeDiameter / 2)]]);
       tempYPos = TreeNode.getRandomNumber([[TreeNode.nodeDiameter / 2, 100 - (TreeNode.nodeDiameter / 2)]]);
-      console.log('Parent node: ' + tempXPos + ' ' + tempYPos);
       this.claimPosition(tempXPos, tempYPos);
       return true;
     } else {
@@ -78,15 +76,16 @@ export class TreeNode {
         if (this.checkDirection(parentNode, direction[0], direction[1])) {
           return true;
         }
-        if (directions.length <= 0) {
-          console.log('no room for child');
-
-        }
       }
     }
     return false;
   }
 
+  /**
+   * claim area on mapping, if an area is already claimed, claim it and add node to children list
+   * @param xPos
+   * @param yPos
+   */
   claimPosition(xPos: number, yPos: number) {
     this.xPos = xPos;
     this.yPos = yPos;
@@ -99,9 +98,6 @@ export class TreeNode {
         index = 0;
       }
       let yPosMap = this.treeNodeService.available.get(index);
-      if (yPosMap === undefined) {
-        console.log('tried set to map of ' + i);
-      }
       for (let j = this.yPos - TreeNode.nodeDiameter / 2; j <= this.yPos + TreeNode.nodeDiameter / 2; j++) {
         if (j > 99) {
           yPosMap.set(99, this);
@@ -112,8 +108,30 @@ export class TreeNode {
         }
       }
     }
-    console.log(`claimed: from ${this.xPos - TreeNode.nodeDiameter}, ${this.yPos - TreeNode.nodeDiameter} to
-    ${this.xPos + TreeNode.nodeDiameter}, ${this.yPos + TreeNode.nodeDiameter}`);
+    this.createRandomRelationships(this);
+  }
+
+  createRandomRelationships(node: TreeNode) {
+    const tempXPos = node.xPos;
+    const tempYPos = node.yPos;
+    for (let i = tempXPos - TreeNode.nodeDiameter; i <= tempXPos + TreeNode.nodeDiameter; i++) {
+      let index1 = i;
+      if(index1>99) index1=99;
+      if(index1<0) index1=0;
+      let yPosMap: Map<number, TreeNode> = this.treeNodeService.available.get(index1);
+
+      for (let j = tempYPos - TreeNode.nodeDiameter; j <= tempYPos + TreeNode.nodeDiameter; j++) {
+        let index = j;
+        if(index>99) index = 99;
+        if(index<0) index=0;
+        let tempNode = yPosMap.get(index);
+        if (tempNode !== undefined && j <= 99 && j > 0) {
+          if (node.childrenNodes.indexOf(tempNode) < 0 && node.parentNode != tempNode && node != tempNode) {
+            node.childrenNodes.push(tempNode);
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -158,7 +176,6 @@ export class TreeNode {
 
   public getLineAngle(xPos1: number, yPos1: number, xPos2: number, yPos2: number): number {
     let parent = document.getElementById('parentContainer').getBoundingClientRect();
-    console.log('width: ' + parent.width + ' height: ' + parent.height);
     let run: number = (xPos1 - xPos2) / +parent.height;
     let rise: number = (yPos2 - yPos1) / +parent.width;
     return Math.atan(rise / run) * 180 / Math.PI;
@@ -182,9 +199,7 @@ export class TreeNode {
   private checkForSpace(tempXPos: number, tempYPos: number): boolean {
     for (let i = tempXPos - TreeNode.nodeDiameter / 2; i <= tempXPos + TreeNode.nodeDiameter / 2; i++) {
       let yPosMap: Map<number, TreeNode> = this.treeNodeService.available.get(i);
-      if (yPosMap === undefined) {
-        console.log('tried getting mapping for ' + i);
-      }
+
       for (let j = tempYPos - TreeNode.nodeDiameter; j <= tempYPos + TreeNode.nodeDiameter; j++) {
         if (yPosMap.get(j) !== undefined || j >= 99 || j < 0) {
           return false;
@@ -195,12 +210,12 @@ export class TreeNode {
   }
 
 
-  generateLineId(): string {
-    if (this.lineId === undefined) {
-      this.lineId = '' + Math.random();
-    }
-    return this.lineId;
-  }
+  // generateLineId(): string {
+  //   if (this.lineId === undefined) {
+  //     this.lineId = '' + Math.random();
+  //   }
+  //   return this.lineId;
+  // }
 
   /**
    * checks if point is occupied on mapping, returns true if available
@@ -266,6 +281,11 @@ export class TreeNode {
           xPos = Math.ceil((1 / slope) + xPos);
           let ySign: number = yPos - this.parentNode.yPos;
           yPos = (ySign / Math.abs(ySign)) + yPos;
+
+          //if line length > max line length then return false
+          if(this.getLineLength(fromNode.xPos,fromNode.yPos,xPos,yPos) > this.lineMaxLength){
+            return false;
+          }
         }
       } else {
         return false;
@@ -279,7 +299,6 @@ export class TreeNode {
    */
   public generateChildren(interval: boolean) {
     while (this.childrenNodes.length < this.treeNodeService.maxChildren && this.treeDepth < this.treeNodeService.treeDepth) {
-      console.log('generated child');
       let childNode: TreeNode = new TreeNode(this, this.treeNodeService);
       if (childNode.exist) {
         this.childrenNodes.push(childNode);
@@ -293,21 +312,62 @@ export class TreeNode {
         node.generateChildren(interval);
       }
     }
-    if (this.childrenNodes.length > 0) {
-      this.isLeaf = false;
-    }
   }
 
   setId(length) {
-    if(this.id === undefined) {
-      let result = '';
-      let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let charactersLength = characters.length;
-      for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      }
-      this.id = result;
+    if (this.id === undefined) {
+
+      this.id = this.getRandomId(length);
     }
+    return this.id;
+  }
+
+  public drawNewLines() {
+    for (let node of this.getRelations()) {
+      //does this node already have a line?
+      let line = node.relationsLines.get(this.id);
+      if(line === undefined || line === null){
+        let nodeLine: NodeLine = new NodeLine();
+        nodeLine.angle = this.getLineAngle(this.xPos, this.yPos, node.xPos, node.yPos);
+        nodeLine.position = TreeNode.getLinePosition(this.xPos, this.yPos, node.xPos, node.yPos);
+        nodeLine.length = this.getLineLength(this.xPos, this.yPos, node.xPos, node.yPos);
+        nodeLine.id = this.getRandomId(10);
+        this.relationsLines.set(node.id,nodeLine);
+      }else{
+        this.relationsLines.set(node.id,line);
+      }
+    }
+  }
+
+  /**
+   * looks at nodes and checks if they have this node in their children node list
+   */
+  public getParents() {
+    for(let node of this.treeNodeService.nodes){
+        if(node.childrenNodes.indexOf(this) >= 0){
+          this.parents.push(node);
+        }
+    }
+  }
+
+  public getRandomId(length: number):string {
+    let result = '';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+  public getRelations():TreeNode[] {
+    let relations: TreeNode[] = [];
+    relations.push(...this.childrenNodes);
+    relations.push(...this.parents);
+    return relations;
+  }
+
+  public toString():string{
     return this.id;
   }
 }

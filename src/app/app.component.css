@@ -1,6 +1,7 @@
 *{
   --node-diameter: 3.7vh;
   --node-radius:100%;
+  --line-color: #726DA8;
 }
 
 .wrapper{
@@ -15,16 +16,14 @@
   background: darkgray;
   border:1px solid black;
 }
-.controller-container{
-  width:100%;
-}
+
 
 .node{
   z-index: 2;
   position: absolute;
   width: var(--node-diameter);
   height: var(--node-diameter);
-  border: 1px solid black;
+  border: 2px solid black;
   border-radius: var(--node-radius);
   transform: translate(-50%,50%);
   background: white;
@@ -35,12 +34,40 @@
   height:20px;
   border: 1px solid black;
   border-radius: var(--node-radius);
+}
 
+.controls-input{
+  height: 30px;
+  font-size: 14px;
 }
 
 .node-line{
   position: absolute;
-  height: 3px;
-  background: white;
+  height: 1px;
+  box-shadow: 0 0 1px 0 var(--line-color) inset, 0 0 1px 0 var(--line-color);
+  background: var(--line-color);
 }
 
+#message{
+  position: absolute;
+  z-index: 4;
+  bottom: 15px;
+  left:50%;
+  transform: translateX(-50%);
+  background: lightyellow;
+  padding: 5px;
+  border-radius: 15px;
+  opacity: 0;
+}
+
+@keyframes message-animation {
+  from{opacity: 0}
+  to{opacity: 1}
+}
+
+
+@media only screen and (max-width: 768px) {
+  *{
+    --node-diameter: 3vw;
+  }
+}

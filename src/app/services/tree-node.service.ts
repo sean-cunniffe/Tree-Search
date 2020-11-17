@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {TreeNode} from '../common/tree-node';
+import {Subject} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -7,9 +8,11 @@ import {TreeNode} from '../common/tree-node';
 export class TreeNodeService {
 
   nodes: TreeNode[] = [];
-  treeDepth: number = 20;
-  maxChildren:number = 3;
+  treeDepth: number = 10;
+  maxChildren:number = 2;
   available: Map<number,Map<number,TreeNode>> = new Map();
+  showIndex: boolean = false;
+  treeExplored: TreeNode[] = [];
   constructor() {
     this.createMapping();
   }

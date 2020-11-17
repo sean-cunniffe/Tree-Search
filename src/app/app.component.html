@@ -1,70 +1,95 @@
 <div class="wrapper d-flex flex-column">
-  <div class="controller-container d-flex flex-row">
-    <div class="d-flex flex-column mr-2">
-      <div class="d-flex flex-row">
-        <div class="d-node"
-             [style.background]="'green'" [style.transform]="''">
-          <!--        {{node.treeDepth}}-->
-        </div>
-        <h4>Leaf</h4>
-      </div>
-      <div class="d-flex flex-row">
-        <div class="d-node"
-             [style.background]="'blue'">
-        </div>
-        <h4>Root</h4>
-      </div>
-      <div class="d-flex flex-row">
-        <div class="d-node"
-             [style.background]="'White'">
-        </div>
-        <h4>Branch</h4>
-      </div>
-    </div>
-    <div class="d-flex flex-column">
+<!--    Controller-->
+  <div id="controls" class="w-100 d-flex flex-row pt-1 h-fit">
+    <div class="d-flex flex-column ml-3 h-fit">
       <h4 class="header font-weight-bold">Tree Depth</h4>
       <div class="d-flex flex-row">
-        <label class="w-100">
-          <input type="number" min="0" max="20" value="{{treeNodeService.treeDepth}}" (input)="updateTreeDepth($event.target.value)">
+        <label class="w-100 mb-0">
+          <input id="treeDepthControl" class="w-100" type="number" min="0" max="20" value="{{treeNodeService.treeDepth}}"
+                 (input)="treeNodeService.treeDepth = $event.target.value">
         </label>
       </div>
     </div>
-    <div class="d-flex flex-column">
-      <h4 class="header font-weight-bold">Max Children per node</h4>
+    <div class="d-flex flex-column ml-3 h-fit">
+      <h4 class="header font-weight-bold">Max Children</h4>
       <div class="d-flex flex-row">
-        <label class="w-100">
-          <input type="number" min="0" max="8" value="{{treeNodeService.maxChildren}}" (input)="updateMaxChildren($event.target.value)">
+        <label class="w-100 mb-0">
+          <input id="maxChildren" class="w-100" type="number" min="0" max="8" value="{{treeNodeService.maxChildren}}"
+                 (input)="updateMaxChildren($event.target.value)">
         </label>
       </div>
     </div>
-    <button class="h-fit mt-auto mb-auto" (click)="generateTree()">Generate Tree</button>
+    <button class="controls-input p-0 pl-2 pr-2 mt-auto ml-2 btn btn-secondary" (click)="generateTree($event.target)">Generate Tree</button>
+    <button class="controls-input p-0 pl-2 pr-2 mt-auto ml-2 btn btn-secondary"
+            (click)="treeNodeService.showIndex=!treeNodeService.showIndex">Show Node ID's
+    </button>
+    <select class="controls-input p-0 pl-2 pr-2 mt-auto ml-2 " name="sort type" (change)="selectedSearch = $event.target.value">
+    <option value="depth">Depth First Search (DFS)</option>
+    <option value="breadth">Breadth First Search (BFS)</option>
+  </select>
+    <select class="controls-input p-0 pl-2 pr-2 mt-auto ml-2 " name="sort type" (change)="modeChange($event.target)">
+      <option value="transverse">Transverse Graph</option>
+      <option value="search">Search for Node</option>
+    </select>
+    <button class="controls-input p-0 pl-2 pr-2 mt-auto ml-2 btn btn-primary" (click)="search(treeNodeService.nodes[0],undefined)">Search</button>
+    <h4 *ngIf="treeNodeService.treeExplored.length>0">{{treeNodeService.treeExplored.length}}</h4>
   </div>
-
+  <div class=" mt-1 d-flex w-100 flex-row">
+    <div class="d-flex flex-row ml-2">
+      <div class="d-node"
+           [style.background]="'green'" [style.transform]="''">
+      </div>
+      <h4>{{greenNode}}</h4>
+    </div>
+    <div class="d-flex flex-row ml-2">
+      <div class="d-node"
+           [style.background]="'blue'" [style.transform]="''">
+      </div>
+      <h4>{{blueNode}}</h4>
+    </div>
+    <div class="d-flex flex-row ml-2">
+      <div class="d-node"
+           [style.background]="'white'" [style.transform]="''">
+      </div>
+      <h4>{{whiteNode}}</h4>
+    </div>
+  </div>
+<!--  node container-->
   <div id="parentContainer" class="node-container flex-grow-1">
-    <ng-container *ngFor="let node of getNodes();index as index">
-      <div id="{{node.generateLineId()}}" *ngIf="node.parentNode!=undefined" class="node-line"
-           [style.width.%]="node.lineLength" [style.transform]="'translate(-50%,50%) rotate('+node.lineAngle+'deg)'"
-           [style.bottom.%]="node.linePosition[1]" [style.left.%]="node.linePosition[0]">
+    <ng-container *ngFor="let node of this.treeNodeService.nodes;index as index">
+
+      <ng-container *ngIf="node.childrenNodes.length>0">
+        <div id="{{node.relationsLines.get(node2.id)?.id}}" *ngFor="let node2 of node.childrenNodes" class="node-line"
+             [style.width.%]="node.relationsLines.get(node2.id)?.length" [style.transform]="'translate(-50%,50%) rotate('+node.relationsLines.get(node2.id)?.angle+'deg)'"
+             [style.bottom.%]="node.relationsLines.get(node2.id)?.position[1]" [style.left.%]="node.relationsLines.get(node2.id)?.position[0]">
+        </div>
+      </ng-container>
+
+      <div id="root" *ngIf="node.id == 'root'" class="node d-flex" [style.bottom.%]="node.yPos"
+           [style.left.%]="node.xPos"
+           [style.background]="'blue'" [style.color]="'white'" (mouseenter)="colorChange(node,true)"
+           (mouseleave)="colorChange(node,false)" (click)="nodeSelected(node)">
+        <h6 class="mt-auto mb-auto ml-auto mr-auto" [hidden]="!treeNodeService.showIndex"> {{index}} </h6>
       </div>
 
-      <div id="root" *ngIf="node.id == 'root'" class="node" [style.bottom.%]="node.yPos" [style.left.%]="node.xPos"
-           [style.background]="'blue'">
-        <!--        {{node.treeDepth}}-->
+      <div id="{{node.id}}" *ngIf="!node.isLeaf && node != rootNode" class="node d-flex"
+           [style.bottom.%]="node.yPos"
+           [style.left.%]="node.xPos" [style.width.%]="" (mouseenter)="colorChange(node,true)"
+           (mouseleave)="colorChange(node,false)" (click)="nodeSelected(node)">
+        <h6 class="mt-auto mb-auto ml-auto mr-auto" [hidden]="!treeNodeService.showIndex"> {{index}} </h6>
       </div>
 
-      <div id="{{node.setId(15)}}" *ngIf="!node.isLeaf && node != rootNode" class="node" [style.bottom.%]="node.yPos"
+      <div id="{{node.id}}" *ngIf="node.isLeaf && node != rootNode" class="node d-flex"
+           [style.bottom.%]="node.yPos"
            [style.left.%]="node.xPos"
-           (mouseenter)="highlightNode($event.target,node)" (mouseleave)="lowLightNode($event.target,node)"
-           (focusin)="highlightNode($event.target,node)" (focusout)="lowLightNode($event.target,node)">
-        <!--        {{node.treeDepth}}-->
-      </div>
-      <div id="{{node.setId(15)}}" *ngIf="node.isLeaf && node != rootNode" class="node" [style.bottom.%]="node.yPos"
-           [style.left.%]="node.xPos"
-           [style.background]="'green'" (mouseenter)="highlightNode($event.target,node)" (mouseleave)="lowLightNode($event.target,node)"
-           (focusin)="highlightNode($event.target,node)" (focusout)="lowLightNode($event.target,node)">
-        <!--        {{node.treeDepth}}-->
+           [style.background]="'green'" (mouseenter)="colorChange(node,true)"
+           (mouseleave)="colorChange(node,false)" (click)="nodeSelected(node)">
+        <h6 class="mt-auto mb-auto ml-auto mr-auto" [hidden]="!treeNodeService.showIndex"> {{index}} </h6>
       </div>
 
     </ng-container>
+  </div>
+  <div (mouseenter)="hideMessage = true" id="message" [hidden]="hideMessage">
+    <h3 class="font-weight-normal">{{message}}</h3>
   </div>
 </div>
